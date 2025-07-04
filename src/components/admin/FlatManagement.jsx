@@ -11,6 +11,8 @@ const FlatManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingFlat, setEditingFlat] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+
   const [formData, setFormData] = useState({
     flatNumber: '',
     floor: '',
@@ -106,11 +108,18 @@ const FlatManagement = () => {
     setShowModal(false);
   };
 
-  const filteredFlats = flats.filter(flat =>
-    flat.flatNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    flat.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    flat.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFlats = flats.filter(flat => {
+    const matchesSearch =
+      flat.flatNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      flat.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      flat.status.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === 'All' || flat.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
 
   if (loading) {
     return (
@@ -143,18 +152,32 @@ const FlatManagement = () => {
           <FaPlus /> Add Flat
         </button>
       </div>
+        <div className="flex flex-col md:flex-row gap-4 md:items-center">
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <FaSearch className="absolute left-3 top-3 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search flats..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+          </div>
 
-      {/* Search Bar */}
-      <div className="relative">
-        <FaSearch className="absolute left-3 top-3 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search flats..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        />
-      </div>
+          {/* Filter Dropdown */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          >
+            <option value="All">All Statuses</option>
+            <option value="Available">Available</option>
+            <option value="Occupied">Occupied</option>
+            <option value="Maintenance">Under Maintenance</option>
+          </select>
+        </div>
+
 
       {/* Flats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
