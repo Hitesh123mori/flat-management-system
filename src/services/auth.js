@@ -76,7 +76,8 @@ export const authService = {
         name: userData.name,
         role: userData.role || 'user',
         createdAt: new Date(),
-        createdBy: auth.currentUser?.uid
+        createdBy: auth.currentUser?.uid,
+        isActive : true,
       });
       
       return user;
