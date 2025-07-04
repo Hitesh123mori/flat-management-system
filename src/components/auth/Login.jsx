@@ -81,18 +81,6 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-
-  const handleDemoCredentials = (type) => {
-    const credentials = {
-      admin: { email: 'admin@demo.com', password: 'admin123' },
-      user: { email: 'user@demo.com', password: 'user123' },
-      security: { email: 'security@demo.com', password: 'security123' }
-    };
-    setFormData(credentials[type]);
-    setValidationErrors({});
-    setError('');
-  };
-
   // Redirect after login
   if (redirectTo) {
     return <Navigate to={redirectTo} replace />;
@@ -101,7 +89,6 @@ const Login = () => {
   // Redirect if already logged in
   if (userData?.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
   if (userData?.role === 'user') return <Navigate to="/user/dashboard" replace />;
-  if (userData?.role === 'security') return <Navigate to="/security/dashboard" replace />;
 
   if (loading) {
     return (
