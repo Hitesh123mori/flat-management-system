@@ -24,7 +24,6 @@ const Sidebar = () => {
     { id: 'owners', label: 'Owner Management', icon: Users },
     { id: 'vehicles', label: 'Vehicle Management', icon: Car },
     { id: 'transfer', label: 'Transfer Ownership', icon: UserCheck },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
   ];
 
   return (
