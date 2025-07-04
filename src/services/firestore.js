@@ -153,7 +153,6 @@ async getDocument(collectionName, id) {
       const docRef = await addDoc(collection(db, 'owners'), {
         ...ownerData,
         createdAt: new Date(),
-        isActive: true
       });
       return docRef.id;
     } catch (error) {
