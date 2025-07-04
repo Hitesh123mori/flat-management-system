@@ -465,12 +465,6 @@ async getDocument(collectionName, id) {
     }
   },
 
- async transferFlatOwnership (flatId, newOwnerId)  {
-    const flatRef = doc(db, 'flats', flatId);
-    await updateDoc(flatRef, {
-      ownerId: newOwnerId,
-    });
-  },
   
 };
 
@@ -482,4 +476,5 @@ export const searchVehicle = firestoreService.searchVehicle ;
 export const getUserRole = firestoreService.getUserRole;
 export const updateUserRole = firestoreService.updateUserRole;
 export const getAllOwners = firestoreService.getAllOwners;
-export const transferFlatOwnership = firestoreService.transferFlatOwnership ;
+export const updateOwner = firestoreService.updateOwner ;
+export const updateFlat = firestoreService.updateFlat ;

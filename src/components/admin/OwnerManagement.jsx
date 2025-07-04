@@ -87,37 +87,40 @@ const handleSubmit = async (e) => {
     const flatRef = doc(db, 'flats', formData.flatId);
     const flatStatus = formData.status === 'Active' ? 'Occupied' : 'Available';
 
+    let ownerId;
+
     if (editingOwner) {
-      await updateDoc(doc(db, 'owners', editingOwner.id), {
+      ownerId = editingOwner.id;
+
+      // 1. Update owner document
+      await updateDoc(doc(db, 'owners', ownerId), {
         ...formData,
         updatedAt: new Date().toISOString()
       });
-
-      // Update flat status
-      await updateDoc(flatRef, {
-        status: flatStatus
-      });
-
     } else {
+      // 2. Add new owner document
       const docRef = await addDoc(collection(db, 'owners'), {
         ...formData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
-
-      // Update flat status
-      await updateDoc(flatRef, {
-        status: flatStatus
-      });
+      ownerId = docRef.id;
     }
+
+    // 3. Update flat document: set status and ownerId
+    await updateDoc(flatRef, {
+      status: flatStatus,
+      ownerId: ownerId
+    });
 
     resetForm();
     fetchOwners();
-    fetchFlats(); 
+    fetchFlats();
   } catch (error) {
     console.error('Error saving owner:', error);
   }
 };
+
 
 
   const handleEdit = (owner) => {
@@ -151,16 +154,28 @@ const handleSubmit = async (e) => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this owner?')) {
-      try {
-        await deleteDoc(doc(db, 'owners', id));
-        fetchOwners();
-      } catch (error) {
-        console.error('Error deleting owner:', error);
+const handleDelete = async (id) => {
+  if (window.confirm('Are you sure you want to delete this owner?')) {
+    try {
+      const ownerToDelete = owners.find(o => o.id === id);
+      await deleteDoc(doc(db, 'owners', id));
+
+      // Clear ownerId in flat (if needed)
+      if (ownerToDelete?.flatId) {
+        await updateDoc(doc(db, 'flats', ownerToDelete.flatId), {
+          ownerId: '',
+          status: 'Available'
+        });
       }
+
+      fetchOwners();
+      fetchFlats();
+    } catch (error) {
+      console.error('Error deleting owner:', error);
     }
-  };
+  }
+};
+
 
   const resetForm = () => {
     setFormData({
