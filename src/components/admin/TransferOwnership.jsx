@@ -43,66 +43,69 @@ const TransferOwnership = () => {
     }
   };
 
-  const handleTransferOwnership = async (e) => {
-    e.preventDefault();
-    if (!selectedFlat || !selectedNewOwner) return;
+ const handleTransferOwnership = async (e) => {
+  e.preventDefault();
+  if (!selectedFlat || !selectedNewOwner) return;
 
-    setLoading(true);
-    setTransferProgress(0);
+  setLoading(true);
+  setTransferProgress(0);
 
-    try {
-      const progressInterval = setInterval(() => {
-        setTransferProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
-
-      const selectedFlatData = flats.find(flat => flat.id === selectedFlat);
-      const oldOwnerId = selectedFlatData.ownerId;
-
-      // 1. Mark old owner as inactive
-      if (oldOwnerId) {
-        await updateOwner(oldOwnerId, {
-          isActive: false,
-          moveOutDate: new Date()
-        });
-      }
-
-      // 2. Mark new owner as active
-      await updateOwner(selectedNewOwner, {
-        isActive: true,
-        moveInDate: new Date()
+  try {
+    const progressInterval = setInterval(() => {
+      setTransferProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        return prev + 10;
       });
+    }, 200);
 
-      // 3. Update flat with new owner
-      await updateFlat(selectedFlat, {
-        ownerId: selectedNewOwner,
-        previousOwnerId: oldOwnerId
+    const selectedFlatData = flats.find(flat => flat.id === selectedFlat);
+    const oldOwnerId = selectedFlatData.ownerId;
+
+    // 1. Mark old owner as "Old" (keep flatId unchanged)
+    if (oldOwnerId) {
+      await updateOwner(oldOwnerId, {
+        status: 'Old',
+        updatedAt: new Date().toISOString()
       });
-
-      clearInterval(progressInterval);
-      setTransferProgress(100);
-
-      // Reset form
-      setSelectedFlat('');
-      setSelectedNewOwner('');
-      setTransferReason('');
-      setTransferDate(new Date().toISOString().split('T')[0]);
-
-      await fetchData();
-      alert('Ownership transferred successfully!');
-    } catch (error) {
-      console.error('Error transferring ownership:', error);
-      alert('Error transferring ownership. Please try again.');
-    } finally {
-      setLoading(false);
-      setTransferProgress(0);
     }
-  };
+
+    // 2. Mark new owner as "Active" and assign flatId
+    await updateOwner(selectedNewOwner, {
+      flatId: selectedFlat,
+      status: 'Active',
+      updatedAt: new Date().toISOString()
+    });
+
+    // 3. Update flat with new ownerId and previousOwnerId
+    await updateFlat(selectedFlat, {
+      ownerId: selectedNewOwner,
+      previousOwnerId: oldOwnerId || '',
+      updatedAt: new Date().toISOString()
+    });
+
+    clearInterval(progressInterval);
+    setTransferProgress(100);
+
+    // Reset form
+    setSelectedFlat('');
+    setSelectedNewOwner('');
+    setTransferReason('');
+    setTransferDate(new Date().toISOString().split('T')[0]);
+
+    await fetchData();
+    alert('Ownership transferred successfully!');
+  } catch (error) {
+    console.error('Error transferring ownership:', error);
+    alert('Error transferring ownership. Please try again.');
+  } finally {
+    setLoading(false);
+    setTransferProgress(0);
+  }
+};
+
 
   const selectedFlatData = flats.find(flat => flat.id === selectedFlat);
   const currentOwner = selectedFlatData
@@ -148,7 +151,7 @@ const TransferOwnership = () => {
                 }))}
                 value={selectedFlat ? {
                   value: selectedFlat,
-                  label: `Flat ${selectedFlatData?.flatNumber} - ${selectedFlatData?.building} (${selectedFlatData?.type})`
+                  label: `Flat ${selectedFlatData?.flatNumber} - Floor ${selectedFlatData?.floor} (${selectedFlatData?.type})`
                 } : null}
                 onChange={option => setSelectedFlat(option.value)}
                 placeholder="Choose a flat..."
