@@ -12,7 +12,8 @@ const OwnerManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingOwner, setEditingOwner] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
+  const [statusFilter, setStatusFilter] = useState('All');
+
 
   const [formData, setFormData] = useState({
   name: '',
@@ -46,6 +47,8 @@ const OwnerManagement = () => {
     fetchOwners();
     fetchFlats();
   }, []);
+
+  
 
   const fetchOwners = async () => {
     try {
@@ -195,12 +198,19 @@ const handleSubmit = async (e) => {
     return flat ? flat.flatNumber : 'N/A';
   };
 
-  const filteredOwners = owners.filter(owner =>
+  const filteredOwners = owners.filter(owner => {
+  const matchesSearch =
     owner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     owner.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     owner.phone.includes(searchTerm) ||
-    getFlatNumber(owner.flatId).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    getFlatNumber(owner.flatId).toLowerCase().includes(searchTerm.toLowerCase());
+
+  const matchesStatus =
+    statusFilter === 'All' || owner.status === statusFilter;
+
+  return matchesSearch && matchesStatus;
+   });
+
 
   if (loading) {
     return (
@@ -234,17 +244,34 @@ const handleSubmit = async (e) => {
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative">
-        <FaSearch className="absolute left-3 top-3 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search owners..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        />
-      </div>
+        {/* Search and Filter */}
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+          {/* Search Bar */}
+          <div className="relative w-full md:w-3/4">
+            <FaSearch className="absolute left-3 top-3 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search owners..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Filter Dropdown */}
+          <div className="w-full md:w-1/4">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="All">All Owners</option>
+              <option value="Active">Active Owners</option>
+              <option value="Old">Old Owners</option>
+            </select>
+          </div>
+        </div>
+
 
       {/* Owners Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
