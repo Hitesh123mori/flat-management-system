@@ -26,7 +26,6 @@ const Dashboard = () => {
     childrenCount: 0
   });
   const [loading, setLoading] = useState(true);
-  const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -62,12 +61,7 @@ const Dashboard = () => {
         childrenCount: totalChildren
       });
 
-      setRecentActivities([
-        { id: 1, type: 'flat', message: 'New flat A-101 added', time: '2 hours ago' },
-        { id: 2, type: 'owner', message: 'Owner details updated for B-205', time: '4 hours ago' },
-        { id: 3, type: 'vehicle', message: 'New vehicle registered: GJ-01-AB-1234', time: '1 day ago' },
-        { id: 4, type: 'transfer', message: 'Ownership transferred for C-301', time: '2 days ago' }
-      ]);
+
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -147,23 +141,6 @@ const Dashboard = () => {
                   {stats.maleCount + stats.femaleCount + stats.childrenCount}
                 </span>
               </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activities</h2>
-            <div className="space-y-4">
-              {recentActivities.map(activity => (
-                <div key={activity.id} className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">{activity.message}</p>
-                    <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
