@@ -21,7 +21,8 @@ const FlatManagement = () => {
     status: 'Available',
     rent: '',
     deposit: '',
-    description: ''
+    description: '',
+    ownerId: ''
   });
 
   useEffect(() => {
@@ -77,7 +78,8 @@ const FlatManagement = () => {
       status: flat.status,
       rent: flat.rent,
       deposit: flat.deposit,
-      description: flat.description
+      description: flat.description,
+      ownerId: flat.ownerId || ''
     });
     setShowModal(true);
   };
