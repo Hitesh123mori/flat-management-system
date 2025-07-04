@@ -32,42 +32,44 @@ const Dashboard = () => {
   }, []);
 
   const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const [flats, owners, vehicles] = await Promise.all([
-        getCollection('flats'),
-        getCollection('owners'),
-        getCollection('vehicles')
-      ]);
+    const [flats, owners, vehicles] = await Promise.all([
+      getCollection('flats'),
+      getCollection('owners'),
+      getCollection('vehicles')
+    ]);
 
-      const occupiedFlats = flats.filter(f => f.status === 'Occupied').length;
-      const maintenanceFlats = flats.filter(f => f.status === 'Maintenance').length;
-      const availableFlats = flats.filter(f => f.status === 'Available').length;
+    const occupiedFlats = flats.filter(f => f.status === 'Occupied').length;
+    const maintenanceFlats = flats.filter(f => f.status === 'Maintenance').length;
+    const availableFlats = flats.filter(f => f.status === 'Available').length;
 
-      const totalMale = owners.reduce((sum, owner) => sum + (owner.familyDetails?.males || 0), 0);
-      const totalFemale = owners.reduce((sum, owner) => sum + (owner.familyDetails?.females || 0), 0);
-      const totalChildren = owners.reduce((sum, owner) => sum + (owner.familyDetails?.children || 0), 0);
+    // Filter active owners only
+    const activeOwners = owners.filter(owner => owner.status === 'Active');
 
-      setStats({
-        totalFlats: flats.length,
-        occupiedFlats,
-        maintenanceFlats,
-        availableFlats,
-        totalOwners: owners.length,
-        totalVehicles: vehicles.length,
-        maleCount: totalMale,
-        femaleCount: totalFemale,
-        childrenCount: totalChildren
-      });
+    const totalMale = activeOwners.reduce((sum, owner) => sum + (owner.familyDetails?.males || 0), 0);
+    const totalFemale = activeOwners.reduce((sum, owner) => sum + (owner.familyDetails?.females || 0), 0);
+    const totalChildren = activeOwners.reduce((sum, owner) => sum + (owner.familyDetails?.children || 0), 0);
 
+    setStats({
+      totalFlats: flats.length,
+      occupiedFlats,
+      maintenanceFlats,
+      availableFlats,
+      totalOwners: owners.length,
+      totalVehicles: vehicles.length,
+      maleCount: totalMale,
+      femaleCount: totalFemale,
+      childrenCount: totalChildren
+    });
 
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const StatCard = ({ title, value, icon: Icon, color, bgColor }) => (
     <div className={`${bgColor} rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
