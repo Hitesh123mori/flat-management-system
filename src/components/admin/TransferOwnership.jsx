@@ -43,69 +43,75 @@ const TransferOwnership = () => {
     }
   };
 
- const handleTransferOwnership = async (e) => {
-  e.preventDefault();
-  if (!selectedFlat || !selectedNewOwner) return;
+  const handleTransferOwnership = async (e) => {
+    e.preventDefault();
+    if (!selectedFlat || !selectedNewOwner) return;
 
-  setLoading(true);
-  setTransferProgress(0);
+    setLoading(true);
+    setTransferProgress(0);
 
-  try {
-    const progressInterval = setInterval(() => {
-      setTransferProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        return prev + 10;
-      });
-    }, 200);
+    try {
+      const progressInterval = setInterval(() => {
+        setTransferProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
 
-    const selectedFlatData = flats.find(flat => flat.id === selectedFlat);
-    const oldOwnerId = selectedFlatData.ownerId;
+      const selectedFlatData = flats.find(flat => flat.id === selectedFlat);
+      const oldOwnerId = selectedFlatData.ownerId;
 
-    // 1. Mark old owner as "Old" (keep flatId unchanged)
-    if (oldOwnerId) {
-      await updateOwner(oldOwnerId, {
-        status: 'Old',
+      // 1. Mark old owner as "Old"
+      if (oldOwnerId) {
+        await updateOwner(oldOwnerId, {
+          status: 'Old',
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      // 2. Mark new owner as "Active" and assign flatId
+      await updateOwner(selectedNewOwner, {
+        flatId: selectedFlat,
+        status: 'Active',
         updatedAt: new Date().toISOString()
       });
+
+      // 3. Update flat with new ownerId and previousOwnerId
+      const flatUpdateData = {
+        ownerId: selectedNewOwner,
+        previousOwnerId: oldOwnerId || '',
+        updatedAt: new Date().toISOString()
+      };
+
+      // ✅ Change status only if current is "Available"
+      if (selectedFlatData.status === 'Available') {
+        flatUpdateData.status = 'Occupied';
+      }
+
+      await updateFlat(selectedFlat, flatUpdateData);
+
+      clearInterval(progressInterval);
+      setTransferProgress(100);
+
+      // Reset form
+      setSelectedFlat('');
+      setSelectedNewOwner('');
+      setTransferReason('');
+      setTransferDate(new Date().toISOString().split('T')[0]);
+
+      await fetchData();
+      alert('Ownership transferred successfully!');
+    } catch (error) {
+      console.error('Error transferring ownership:', error);
+      alert('Error transferring ownership. Please try again.');
+    } finally {
+      setLoading(false);
+      setTransferProgress(0);
     }
-
-    // 2. Mark new owner as "Active" and assign flatId
-    await updateOwner(selectedNewOwner, {
-      flatId: selectedFlat,
-      status: 'Active',
-      updatedAt: new Date().toISOString()
-    });
-
-    // 3. Update flat with new ownerId and previousOwnerId
-    await updateFlat(selectedFlat, {
-      ownerId: selectedNewOwner,
-      previousOwnerId: oldOwnerId || '',
-      updatedAt: new Date().toISOString()
-    });
-
-    clearInterval(progressInterval);
-    setTransferProgress(100);
-
-    // Reset form
-    setSelectedFlat('');
-    setSelectedNewOwner('');
-    setTransferReason('');
-    setTransferDate(new Date().toISOString().split('T')[0]);
-
-    await fetchData();
-    alert('Ownership transferred successfully!');
-  } catch (error) {
-    console.error('Error transferring ownership:', error);
-    alert('Error transferring ownership. Please try again.');
-  } finally {
-    setLoading(false);
-    setTransferProgress(0);
-  }
-};
-
+  };
 
   const selectedFlatData = flats.find(flat => flat.id === selectedFlat);
   const currentOwner = selectedFlatData
@@ -159,22 +165,32 @@ const TransferOwnership = () => {
               />
             </div>
 
-            <div className="space-y-2">
+           <div className="space-y-2">
               <label className="block text-sm font-medium text-purple-700">Select New Owner</label>
               <Select
-                options={owners.map(owner => ({
-                  value: owner.id,
-                  label: `${owner.name} - ${owner.phone}`
-                }))}
-                value={selectedNewOwner ? {
-                  value: selectedNewOwner,
-                  label: `${owners.find(o => o.id === selectedNewOwner)?.name} - ${owners.find(o => o.id === selectedNewOwner)?.phone}`
-                } : null}
+                options={owners.map(owner => {
+                  const flat = flats.find(f => f.id === owner.flatId);
+                  const flatLabel = flat ? `Flat ${flat.flatNumber}` : 'No Flat';
+                  return {
+                    value: owner.id,
+                    label: `${owner.name} (${flatLabel}) - ${owner.status}`
+                  };
+                })}
+                value={selectedNewOwner ? (() => {
+                  const owner = owners.find(o => o.id === selectedNewOwner);
+                  const flat = flats.find(f => f.id === owner?.flatId);
+                  const flatLabel = flat ? `Flat ${flat.flatNumber}` : 'No Flat';
+                  return {
+                    value: selectedNewOwner,
+                    label: `${owner?.name} (${flatLabel}) - ${owner.status}`
+                  };
+                })() : null}
                 onChange={option => setSelectedNewOwner(option.value)}
                 placeholder="Choose new owner..."
                 isSearchable
               />
             </div>
+
           </div>
 
           {currentOwner && (
@@ -188,35 +204,9 @@ const TransferOwnership = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-purple-700">Transfer Date</label>
-              <input
-                type="date"
-                value={transferDate}
-                onChange={(e) => setTransferDate(e.target.value)}
-                className="w-full px-4 py-3 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                required
-              />
-            </div>
+    
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-purple-700">Transfer Reason</label>
-              <select
-                value={transferReason}
-                onChange={(e) => setTransferReason(e.target.value)}
-                className="w-full px-4 py-3 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                required
-              >
-                <option value="">Select reason</option>
-                <option value="sale">Sale</option>
-                <option value="inheritance">Inheritance</option>
-                <option value="gift">Gift</option>
-                <option value="legal_transfer">Legal Transfer</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-          </div>
+        
 
           <div className="flex justify-end">
             <button
