@@ -345,13 +345,12 @@ async getDocument(collectionName, id) {
       const newOwnerId = await this.addOwner({
         ...newOwnerData,
         flatId: flatId,
-        moveInDate: new Date()
+        status:"Active",
       });
 
       // Update current owner to inactive
       await this.updateOwner(currentOwnerId, {
-        isActive: false,
-        moveOutDate: new Date()
+        status : "Old"
       });
 
       // Update flat with new owner
@@ -360,17 +359,7 @@ async getDocument(collectionName, id) {
         previousOwnerId: currentOwnerId
       });
 
-      // Add to ownership history
-      await addDoc(collection(db, 'ownershipHistory'), {
-        flatId: flatId,
-        previousOwnerId: currentOwnerId,
-        newOwnerId: newOwnerId,
-        transferDate: new Date(),
-        transferReason: transferReason,
-        transferredBy: adminUserId,
-        notes: `Ownership transferred from ${currentOwnerId} to ${newOwnerId}`
-      });
-
+  
       return newOwnerId;
     } catch (error) {
       console.error('Transfer ownership error:', error);
@@ -478,3 +467,4 @@ export const updateUserRole = firestoreService.updateUserRole;
 export const getAllOwners = firestoreService.getAllOwners;
 export const updateOwner = firestoreService.updateOwner ;
 export const updateFlat = firestoreService.updateFlat ;
+export const addOwner = firestoreService.addOwner ;
