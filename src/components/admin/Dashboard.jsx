@@ -41,9 +41,9 @@ const Dashboard = () => {
         getCollection('vehicles')
       ]);
 
-      const occupiedFlats = flats.filter(f => f.status === 'occupied').length;
-      const maintenanceFlats = flats.filter(f => f.status === 'maintenance').length;
-      const availableFlats = flats.filter(f => f.status === 'available').length;
+      const occupiedFlats = flats.filter(f => f.status === 'Occupied').length;
+      const maintenanceFlats = flats.filter(f => f.status === 'Maintenance').length;
+      const availableFlats = flats.filter(f => f.status === 'Available').length;
 
       const totalMale = owners.reduce((sum, owner) => sum + (owner.familyDetails?.males || 0), 0);
       const totalFemale = owners.reduce((sum, owner) => sum + (owner.familyDetails?.females || 0), 0);

@@ -12,31 +12,35 @@ const OwnerManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingOwner, setEditingOwner] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
+
   const [formData, setFormData] = useState({
+  name: '',
+  email: '',
+  phone: '',
+  address: '',
+  flatId: '',
+  occupancyDate: '',
+  status: 'Active', 
+  familyDetails: {
+    totalMembers: 0,
+    adults: 0,
+    children: 0,
+    males: 0,
+    females: 0
+  },
+  emergencyContact: {
     name: '',
-    email: '',
     phone: '',
-    address: '',
-    flatId: '',
-    occupancyDate: '',
-    familyDetails: {
-      totalMembers: 0,
-      adults: 0,
-      children: 0,
-      males: 0,
-      females: 0
-    },
-    emergencyContact: {
-      name: '',
-      phone: '',
-      relation: ''
-    },
-    documents: {
-      aadhar: '',
-      pan: '',
-      lease: ''
-    }
-  });
+    relation: ''
+  },
+  documents: {
+    aadhar: '',
+    pan: '',
+    lease: ''
+  }
+});
+
 
   useEffect(() => {
     fetchOwners();
@@ -74,27 +78,44 @@ const OwnerManagement = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingOwner) {
-        await updateDoc(doc(db, 'owners', editingOwner.id), {
-          ...formData,
-          updatedAt: new Date().toISOString()
-        });
-      } else {
-        await addDoc(collection(db, 'owners'), {
-          ...formData,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      }
-      resetForm();
-      fetchOwners();
-    } catch (error) {
-      console.error('Error saving owner:', error);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const flatRef = doc(db, 'flats', formData.flatId);
+    const flatStatus = formData.status === 'Active' ? 'Occupied' : 'Available';
+
+    if (editingOwner) {
+      await updateDoc(doc(db, 'owners', editingOwner.id), {
+        ...formData,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Update flat status
+      await updateDoc(flatRef, {
+        status: flatStatus
+      });
+
+    } else {
+      const docRef = await addDoc(collection(db, 'owners'), {
+        ...formData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      // Update flat status
+      await updateDoc(flatRef, {
+        status: flatStatus
+      });
     }
-  };
+
+    resetForm();
+    fetchOwners();
+    fetchFlats(); 
+  } catch (error) {
+    console.error('Error saving owner:', error);
+  }
+};
+
 
   const handleEdit = (owner) => {
     setEditingOwner(owner);
@@ -112,6 +133,7 @@ const OwnerManagement = () => {
         males: 0,
         females: 0
       },
+      status: owner.status || 'Active',
       emergencyContact: owner.emergencyContact || {
         name: '',
         phone: '',
@@ -144,6 +166,7 @@ const OwnerManagement = () => {
       phone: '',
       address: '',
       flatId: '',
+      status : "Active",
       occupancyDate: '',
       familyDetails: {
         totalMembers: 0,
@@ -283,9 +306,32 @@ const OwnerManagement = () => {
                   <div className="flex items-center gap-1">
                     <FaChild className="text-green-500 text-xs" />
                     <span>Children: {owner.familyDetails?.children || 0}</span>
-                  </div>
+                  </div>  
+
+
                 </div>
+
+
               </div>
+              <div>
+                {owner.status === 'Active' ? (
+                  <span className="inline-flex items-center gap-2 px-3 py-1 text-sm font-semibold text-green-800 bg-green-100 rounded-md">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-600"></span>
+                    </span>
+                    Active
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 px-3 py-1 text-sm font-semibold text-red-800 bg-red-100 rounded-md">
+                    <span className="h-3 w-3 bg-red-600 rounded-full"></span>
+                    Old
+                  </span>
+                )}
+              </div>
+
+
+
             </div>
           </div>
         ))}
@@ -372,6 +418,24 @@ const OwnerManagement = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
+
+                  <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <select
+                    required
+                    value={formData.status}
+                    onChange={(e) =>
+                      setFormData({ ...formData, status: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Old">Old</option>
+                  </select>
+                </div>
+
                 </div>
 
                 <div>

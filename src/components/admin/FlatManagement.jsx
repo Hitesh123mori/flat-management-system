@@ -16,7 +16,7 @@ const FlatManagement = () => {
     floor: '',
     type: '',
     size: '',
-    status: 'available',
+    status: 'Available',
     rent: '',
     deposit: '',
     description: ''
@@ -97,7 +97,7 @@ const FlatManagement = () => {
       floor: '',
       type: '',
       size: '',
-      status: 'available',
+      status: 'Available',
       rent: '',
       deposit: '',
       description: ''
@@ -199,9 +199,9 @@ const FlatManagement = () => {
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Status:</span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  flat.status === 'available' 
+                  flat.status === 'Available' 
                     ? 'bg-green-100 text-green-800' 
-                    : flat.status === 'occupied'
+                    : flat.status === 'Occupied'
                     ? 'bg-blue-100 text-blue-800'
                     : 'bg-red-100 text-red-800'
                 }`}>
@@ -294,9 +294,9 @@ const FlatManagement = () => {
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    <option value="available">Available</option>
-                    <option value="occupied">Occupied</option>
-                    <option value="maintenance">Under Maintenance</option>
+                    <option value="Available">Available</option>
+                    <option value="Occupied">Occupied</option>
+                    <option value="Maintenance">Under Maintenance</option>
                   </select>
                 </div>
 
