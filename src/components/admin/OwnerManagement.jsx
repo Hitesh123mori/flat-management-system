@@ -4,6 +4,8 @@ import { db } from '../../services/firebase';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ShimmerLoader from '../common/ShimmerLoader';
 import { FaPlus, FaEdit, FaTrash, FaUser, FaUsers, FaSearch, FaMale, FaFemale, FaChild } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
+import Select from 'react-select';
 
 const OwnerManagement = () => {
   const [owners, setOwners] = useState([]);
@@ -83,31 +85,51 @@ const OwnerManagement = () => {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+
+  // === Validations ===
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^\d{10}$/;
+  const aadharRegex = /^\d{12}$/;
+  const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+  if (!emailRegex.test(formData.email)) {
+    return toast.error('Invalid email format');
+  }
+
+  if (!phoneRegex.test(formData.phone)) {
+    return toast.error('Phone number must be 10 digits');
+  }
+
+  if (formData.documents.aadhar && !aadharRegex.test(formData.documents.aadhar)) {
+    return toast.error('Aadhar must be 12 digits');
+  }
+
+  if (formData.documents.pan && !panRegex.test(formData.documents.pan.toUpperCase())) {
+    return toast.error('Invalid PAN format (e.g., ABCDE1234F)');
+  }
+
   try {
     const flatRef = doc(db, 'flats', formData.flatId);
     const flatStatus = formData.status === 'Active' ? 'Occupied' : 'Available';
-
     let ownerId;
 
     if (editingOwner) {
       ownerId = editingOwner.id;
-
-      // 1. Update owner document
       await updateDoc(doc(db, 'owners', ownerId), {
         ...formData,
         updatedAt: new Date().toISOString()
       });
+      toast.success('Owner updated successfully');
     } else {
-      // 2. Add new owner document
       const docRef = await addDoc(collection(db, 'owners'), {
         ...formData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
       ownerId = docRef.id;
+      toast.success('Owner added successfully');
     }
 
-    // 3. Update flat document: set status and ownerId
     await updateDoc(flatRef, {
       status: flatStatus,
       ownerId: ownerId
@@ -118,8 +140,10 @@ const handleSubmit = async (e) => {
     fetchFlats();
   } catch (error) {
     console.error('Error saving owner:', error);
+    toast.error('Something went wrong while saving owner');
   }
 };
+
 
 
 
@@ -429,37 +453,41 @@ const handleDelete = async (id) => {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Flat
-                    </label>
-                    <select
-                      required
-                      value={formData.flatId}
-                      onChange={(e) => setFormData({...formData, flatId: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="">Select Flat</option>
-                      {flats.map(flat => (
-                        <option key={flat.id} value={flat.id}>
-                          Flat {flat.flatNumber} - {flat.type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Flat</label>
+                <Select
+                  options={flats.map(flat => ({
+                    value: flat.id,
+                    label: `Flat ${flat.flatNumber} - ${flat.type}`
+                  }))}
+                  value={flats.find(flat => flat.id === formData.flatId) ? {
+                    value: formData.flatId,
+                    label: `Flat ${flats.find(f => f.id === formData.flatId)?.flatNumber} - ${flats.find(f => f.id === formData.flatId)?.type}`
+                  } : null}
+                  onChange={(selected) =>
+                    setFormData({ ...formData, flatId: selected?.value || '' })
+                  }
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  isClearable
+                />
+              </div>
+
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Occupancy Date
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={formData.occupancyDate}
-                      onChange={(e) => setFormData({...formData, occupancyDate: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Occupancy Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  max={new Date().toISOString().split('T')[0]}
+                  value={formData.occupancyDate}
+                  onChange={(e) => setFormData({ ...formData, occupancyDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
 
                   <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

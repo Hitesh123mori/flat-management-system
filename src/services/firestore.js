@@ -169,18 +169,38 @@ async getDocument(collectionName, id) {
   },
 
   // OWNERS CRUD OPERATIONS
-  async addOwner(ownerData) {
-    try {
-      const docRef = await addDoc(collection(db, 'owners'), {
-        ...ownerData,
-        createdAt: new Date(),
-      });
-      return docRef.id;
-    } catch (error) {
-      console.error('Add owner error:', error);
-      throw error;
+  async  addOwner(ownerData) {
+  try {
+    // ✅ Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(ownerData.email)) {
+      toast.error('Invalid email address');
+      throw new Error('Invalid email format');
     }
-  },
+
+    // ✅ Phone number validation
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(ownerData.phone)) {
+      toast.error('Phone number must be exactly 10 digits');
+      throw new Error('Invalid phone number');
+    }
+
+    // ✅ If all validations pass
+    const docRef = await addDoc(collection(db, 'owners'), {
+      ...ownerData,
+      createdAt: new Date(),
+    });
+
+    toast.success('Owner added successfully');
+    return docRef.id;
+  } catch (error) {
+    console.error('Add owner error:', error);
+    if (!error.message.includes('Invalid')) {
+      toast.error('Failed to add owner. Try again.');
+    }
+    throw error;
+  }
+},
 
   async updateOwner(ownerId, updateData) {
     try {
