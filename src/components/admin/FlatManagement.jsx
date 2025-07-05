@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { collection,addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ShimmerLoader from '../common/ShimmerLoader';
 import { FaPlus, FaEdit, FaTrash, FaHome, FaUsers, FaSearch } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
+import { addFlat } from '../../services/firestore';
 
 const FlatManagement = () => {
   const [flats, setFlats] = useState([]);
@@ -46,27 +48,24 @@ const FlatManagement = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingFlat) {
-        await updateDoc(doc(db, 'flats', editingFlat.id), {
-          ...formData,
-          updatedAt: new Date().toISOString()
-        });
-      } else {
-        await addDoc(collection(db, 'flats'), {
-          ...formData,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      }
-      resetForm();
-      fetchFlats();
-    } catch (error) {
-      console.error('Error saving flat:', error);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    if (editingFlat) {
+      await updateDoc(doc(db, 'flats', editingFlat.id), {
+        ...formData,
+        updatedAt: new Date().toISOString()
+      });
+      toast.success('Flat updated successfully');
+    } else {
+      await addFlat(formData); 
     }
-  };
+    resetForm();
+    fetchFlats();
+  } catch (error) {
+    console.error('Error in handleSubmit:', error.message);
+  }
+};
 
   const handleEdit = (flat) => {
     setEditingFlat(flat);
