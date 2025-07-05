@@ -14,6 +14,7 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { toast } from 'react-hot-toast';
 
 export const firestoreService = {
 
@@ -71,14 +72,34 @@ async getDocument(collectionName, id) {
 },
 
   // FLATS CRUD OPERATIONS
-  async addFlat(flatData) {
+  async  addFlat(flatData) {
     try {
-      const docRef = await addDoc(collection(db, 'flats'), {
+      // ✅ Validate format like A-101
+      const isValidFormat = /^[A-Z]-\d{3}$/.test(flatData.flatNumber);
+      if (!isValidFormat) {
+        toast.error('Flat number must be in format like A-101');
+        throw new Error('Invalid flat number format');
+      }
+
+      // ✅ Check if flat number already exists
+      const existingFlatsSnapshot = await getDocs(collection(db, 'flats'));
+      const flatExists = existingFlatsSnapshot.docs.some(doc =>
+        doc.data().flatNumber === flatData.flatNumber
+      );
+
+      if (flatExists) {
+        toast.error(`Flat ${flatData.flatNumber} already exists`);
+        throw new Error('Duplicate flat');
+      }
+
+      // ✅ Add new flat
+      await addDoc(collection(db, 'flats'), {
         ...flatData,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       });
-      return docRef.id;
+
+      toast.success('Flat added successfully!');
     } catch (error) {
       console.error('Add flat error:', error);
       throw error;
@@ -467,3 +488,4 @@ export const getAllOwners = firestoreService.getAllOwners;
 export const updateOwner = firestoreService.updateOwner ;
 export const updateFlat = firestoreService.updateFlat ;
 export const addOwner = firestoreService.addOwner ;
+export const addFlat = firestoreService.addFlat ;

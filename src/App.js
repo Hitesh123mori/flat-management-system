@@ -15,12 +15,16 @@ import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
 import './styles/globals.css';
 import './styles/animations.css';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
+    
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-gray-50">
+          <Toaster position="top-right" toastOptions={{ duration: 3000 }} /> 
+
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
