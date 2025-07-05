@@ -93,6 +93,14 @@ const TransferOwnership = () => {
       return;
     }
 
+    const { adults, children, males, females } = newOwnerData.familyDetails;
+
+    if ([adults, children, males, females].some(val => !val || val <= 0)) {
+      alert('All family details (adults, children, males, females) must be greater than 0.');
+      return;
+    }
+
+
     setLoading(true);
     setTransferProgress(0);
 
@@ -429,18 +437,7 @@ if (selectedExistingOwnerId) {
             </h3>
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Total Members
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={newOwnerData.familyDetails.totalMembers}
-                  onChange={(e) => handleInputChange('familyDetails.totalMembers', parseInt(e.target.value) || 0)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
+          
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

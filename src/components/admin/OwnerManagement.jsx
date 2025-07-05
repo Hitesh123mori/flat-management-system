@@ -108,6 +108,10 @@ const handleSubmit = async (e) => {
     return toast.error('Invalid PAN format (e.g., ABCDE1234F)');
   }
 
+  const { adults, children, males, females } = formData.familyDetails;
+  if ([adults, children, males, females].some(val => !val || val <= 0)) {
+    return toast.error('All family details must be greater than 0');
+  }
   try {
     const flatRef = doc(db, 'flats', formData.flatId);
     const flatStatus = formData.status === 'Active' ? 'Occupied' : 'Available';
@@ -135,9 +139,10 @@ const handleSubmit = async (e) => {
       ownerId: ownerId
     });
 
-    resetForm();
-    fetchOwners();
-    fetchFlats();
+      await fetchOwners();
+       await fetchFlats();
+      resetForm(); 
+
   } catch (error) {
     console.error('Error saving owner:', error);
     toast.error('Something went wrong while saving owner');
@@ -455,22 +460,29 @@ const handleDelete = async (id) => {
 
                <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Flat</label>
-                <Select
-                  options={flats.map(flat => ({
-                    value: flat.id,
-                    label: `Flat ${flat.flatNumber} - ${flat.type}`
-                  }))}
-                  value={flats.find(flat => flat.id === formData.flatId) ? {
-                    value: formData.flatId,
-                    label: `Flat ${flats.find(f => f.id === formData.flatId)?.flatNumber} - ${flats.find(f => f.id === formData.flatId)?.type}`
-                  } : null}
-                  onChange={(selected) =>
-                    setFormData({ ...formData, flatId: selected?.value || '' })
-                  }
-                  className="react-select-container"
-                  classNamePrefix="react-select"
-                  isClearable
-                />
+              <Select
+              options={flats
+                .filter(flat => flat.status === 'Available' || flat.id === formData.flatId)
+                .map(flat => ({
+                  value: flat.id,
+                  label: `Flat ${flat.flatNumber} - ${flat.type}`
+                }))}
+              value={
+                flats.find(flat => flat.id === formData.flatId)
+                  ? {
+                      value: formData.flatId,
+                      label: `Flat ${flats.find(f => f.id === formData.flatId)?.flatNumber} - ${flats.find(f => f.id === formData.flatId)?.type}`
+                    }
+                  : null
+              }
+              onChange={(selected) =>
+                setFormData({ ...formData, flatId: selected?.value || '' })
+              }
+              className="react-select-container"
+              classNamePrefix="react-select"
+              isClearable
+            />
+
               </div>
 
 
@@ -509,100 +521,119 @@ const handleDelete = async (id) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address
-                  </label>
-                  <textarea
-                    required
-                    value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Address
+              </label>
+              <textarea
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
 
-                {/* Family Details */}
-                <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-3">Family Details</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Adults
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.familyDetails.adults}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          familyDetails: {
-                            ...formData.familyDetails,
-                            adults: parseInt(e.target.value) || 0
-                          }
-                        })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
+                    {/* Family Details */}
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-semibold mb-3">Family Details</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Children
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.familyDetails.children}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          familyDetails: {
-                            ...formData.familyDetails,
-                            children: parseInt(e.target.value) || 0
-                          }
-                        })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
+              {/* Adults */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adults
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.familyDetails.adults || ''}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setFormData({
+                      ...formData,
+                      familyDetails: {
+                        ...formData.familyDetails,
+                        adults: isNaN(val) || val <= 0 ? '' : val
+                      }
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Males
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.familyDetails.males}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          familyDetails: {
-                            ...formData.familyDetails,
-                            males: parseInt(e.target.value) || 0
-                          }
-                        })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
+              {/* Children */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Children
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.familyDetails.children || ''}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setFormData({
+                      ...formData,
+                      familyDetails: {
+                        ...formData.familyDetails,
+                        children: isNaN(val) || val <= 0 ? '' : val
+                      }
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Females
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.familyDetails.females}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          familyDetails: {
-                            ...formData.familyDetails,
-                            females: parseInt(e.target.value) || 0
-                          }
-                        })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                </div>
+              {/* Males */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Males
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.familyDetails.males || ''}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setFormData({
+                      ...formData,
+                      familyDetails: {
+                        ...formData.familyDetails,
+                        males: isNaN(val) || val <= 0 ? '' : val
+                      }
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Females */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Females
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.familyDetails.females || ''}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setFormData({
+                      ...formData,
+                      familyDetails: {
+                        ...formData.familyDetails,
+                        females: isNaN(val) || val <= 0 ? '' : val
+                      }
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+            </div>
+          </div>
+
+
 
                 {/* Emergency Contact */}
                 <div className="border-t pt-4">

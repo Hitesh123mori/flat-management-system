@@ -264,18 +264,25 @@ const FlatManagement = () => {
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Floor
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.floor}
-                    onChange={(e) => setFormData({...formData, floor: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
+               <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Floor
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                value={formData.floor}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value >= 0) {
+                    setFormData({ ...formData, floor: value });
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -295,18 +302,24 @@ const FlatManagement = () => {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Size (sq ft)
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.size}
-                    onChange={(e) => setFormData({...formData, size: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
+               <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Size (sq ft)
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={formData.size}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || Number(value) >= 0) {
+                  setFormData({ ...formData, size: value });
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Optional"
+            />
+          </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -324,32 +337,35 @@ const FlatManagement = () => {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Rent (₹/month)
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.rent}
-                    onChange={(e) => setFormData({...formData, rent: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
+               <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Rent (₹/month)
+              </label>
+              <input
+                type="number"
+                value={formData.rent}
+                onChange={(e) =>
+                  setFormData({ ...formData, rent: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Optional"
+              />
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Deposit (₹)
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.deposit}
-                    onChange={(e) => setFormData({...formData, deposit: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Deposit (₹)
+            </label>
+            <input
+              type="number"
+              value={formData.deposit}
+              onChange={(e) =>
+                setFormData({ ...formData, deposit: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Optional"
+            />
+          </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Description
