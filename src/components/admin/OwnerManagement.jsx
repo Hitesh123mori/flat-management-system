@@ -335,7 +335,7 @@ const handleDelete = async (id) => {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
                     <FaUsers className="text-gray-500 text-xs" />
-                    <span>Total: {owner.familyDetails?.totalMembers || 0}</span>
+                    <span>Total: {owner.familyDetails?.males + owner.familyDetails?.females || 0}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <FaMale className="text-blue-500 text-xs" />
@@ -497,24 +497,6 @@ const handleDelete = async (id) => {
                 <div className="border-t pt-4">
                   <h3 className="text-lg font-semibold mb-3">Family Details</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Total Members
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.familyDetails.totalMembers}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          familyDetails: {
-                            ...formData.familyDetails,
-                            totalMembers: parseInt(e.target.value) || 0
-                          }
-                        })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
